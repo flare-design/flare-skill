@@ -66,7 +66,7 @@ Installing this skill only gives agents the Flare operating instructions. The Fl
 
 ## Versioning
 
-The skill uses semantic versioning in `skills/flare/SKILL.md` under `metadata.version`. Releases should also be tagged in git, for example `v0.1.4`.
+The skill uses semantic versioning in `skills/flare/SKILL.md` under `metadata.version`. Releases should also be tagged in git, for example `v0.1.5`.
 
 For skill behavior changes:
 
