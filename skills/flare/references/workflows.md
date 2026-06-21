@@ -8,7 +8,7 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
 3. Identify `projectId` from the project URL or MCP project list.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
-5. Use `get_image_upload_endpoint` when available, then binary-upload the local file into Assets. The upload response returns `assetId` and an `asset` object.
+5. Call `create_image_upload_session`, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. The upload response returns `assetId` and an `asset` object.
 6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
 8. Verify with `get_canvas_snapshot` and, if visible, the browser.
@@ -35,7 +35,7 @@ Use this only when the user explicitly wants to test or use Flare's own generati
 
 1. Call `create_generation_job` with the requested image/video prompt and model options.
 2. Poll `get_generation_job` until complete or failed.
-3. If the output is not automatically present in Assets/canvas, import a public output URL with `insert_generated_image`, or save output bytes to a local file and binary-upload them before `insert_asset_image`.
+3. If the output is not automatically present in Assets/canvas, import a public output URL with `insert_generated_image`, or save output bytes to a local file, create an upload session, binary-upload them, then `insert_asset_image`.
 4. Verify the asset, canvas node, and job status.
 
 Do not use this workflow for plain "生成图片/照片/插图" requests, or phrases like "Codex 内生图", "Claude 自己生成", or "不要调用画布生图"; use the agent-generated image workflow instead.
@@ -51,9 +51,8 @@ Do not use this workflow for plain "生成图片/照片/插图" requests, or phr
 
 For image bytes or data URLs:
 
-```text
 Write the image to a local file, then binary-upload the file with the MCP/client upload endpoint.
-```
+Use `create_image_upload_session` for local files unless the MCP client has a built-in binary upload helper that already handles auth.
 
 For public HTTPS URLs:
 

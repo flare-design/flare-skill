@@ -4,9 +4,9 @@
 
 | User intent | Preferred tool path | Avoid |
 | --- | --- | --- |
-| "/flare 生成一张图片/照片/插图" | Use client/agent image generation, save the result as a local file, binary-upload it, then `insert_asset_image` | `create_generation_job` |
-| "Agent/Claude/Codex 生成图片放到画布" | Use the client or agent's image generation capability, save a local file, binary-upload it, then `insert_asset_image` | `create_generation_job` |
-| "把这张本地图片存到素材" | Binary-upload the local file with the MCP/client upload endpoint | Raw canvas patch without asset |
+| "/flare 生成一张图片/照片/插图" | Use client/agent image generation, save the result as a local file, call `create_image_upload_session`, binary-upload it, then `insert_asset_image` | `create_generation_job` |
+| "Agent/Claude/Codex 生成图片放到画布" | Use the client or agent's image generation capability, save a local file, call `create_image_upload_session`, binary-upload it, then `insert_asset_image` | `create_generation_job` |
+| "把这张本地图片存到素材" | Call `create_image_upload_session`, then binary-upload the local file with the returned `uploadToken` | Raw canvas patch without asset |
 | "把这个图片 URL 存到素材" | `save_image_asset_from_url` | Raw canvas patch without asset |
 | "把已有素材放到画布" | `insert_asset_image` or `insert_asset_video` | Re-uploading the same asset |
 | "用 Flare/画布 AI 生图" | `create_generation_job`, then `get_generation_job` | Client-side generation unless asked |
@@ -47,8 +47,9 @@ If wording is mixed, ask one concise clarification before spending generation cr
 
 For agent-generated images:
 
-- Prefer local-file binary upload plus `insert_asset_image`. Use `insert_agent_generated_image` only for public HTTPS `imageUrl` or `url`.
+- Prefer local-file `create_image_upload_session` plus binary upload plus `insert_asset_image`. Use `insert_agent_generated_image` only for public HTTPS `imageUrl` or `url`.
 - If an agent has image data as a data URL or base64 string, first save it to a local image file; do not pass it in MCP JSON.
+- Do not search for or expose MCP OAuth tokens. Use the short-lived `uploadToken` from `create_image_upload_session` for local file bytes.
 - Set `sourceModel` to the client or model name when known; otherwise let the MCP server use its default provenance.
 - Include a useful `fileName` and `name` when the user gave a subject.
 

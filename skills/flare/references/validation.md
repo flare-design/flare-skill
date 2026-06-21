@@ -20,6 +20,7 @@ For agent-generated image insertion:
 - No `create_generation_job` was called.
 - The agent/client image generation path was used for plain "生成图片/照片/插图" wording.
 - No image file was passed as base64 or data URL in MCP JSON.
+- Local file upload used `create_image_upload_session` or a client upload helper, not a searched/exposed MCP OAuth token.
 - Local generated image data was binary-uploaded into Assets before canvas insertion.
 - Asset was saved with generation/source provenance where supported.
 - Canvas image node exists.
@@ -53,6 +54,8 @@ Avoid repeated generation jobs when the failure is actually insertion, asset ind
 
 - Calling `create_generation_job` for agent-generated images.
 - Passing image files as `dataUrl` or `dataBase64` instead of writing a local file and binary-uploading it.
+- Searching shell environment, config files, browser storage, or logs for MCP OAuth tokens.
+- Falling back to Flare app UI upload when an agent-generated local file should use `create_image_upload_session`.
 - Treating the Chinese word "生成" as Flare backend generation without explicit backend wording.
 - Passing `parentId` because a frame is selected, causing generated media to disappear inside or behind an artboard.
 - Treating top-left coordinates as `x/y`; Flare expects center coordinates.

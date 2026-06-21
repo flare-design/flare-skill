@@ -42,7 +42,7 @@ Before giving up on an operation, verify:
 The Flare MCP server should expose tools for:
 
 - Projects: `list_projects`, `get_project`
-- Assets: `list_assets`, `get_image_upload_endpoint`, `save_image_asset_from_url`
+- Assets: `list_assets`, `create_image_upload_session`, `get_image_upload_endpoint`, `save_image_asset_from_url`
 - Generated image insertion: `insert_agent_generated_image`, `insert_codex_generated_image`, `insert_generated_image`. Prefer `insert_agent_generated_image`; `insert_codex_generated_image` is a compatibility alias for older clients and servers.
 - Canvas reads: `get_canvas_snapshot`, `get_live_canvas_context`, `export_project_snapshot`
 - Canvas writes: `insert_asset_image`, `insert_asset_video`, `apply_canvas_patch`, `insert_text`, `insert_rect`, `create_frame`, `update_text`, `set_layer_style`, `reorder_nodes`, `group_nodes`, `delete_nodes`
@@ -56,11 +56,16 @@ If a tool is missing, adapt to the available list and report the missing capabil
 
 For local image files, use the MCP/client binary upload path rather than JSON base64.
 
-- Discovery tool: `get_image_upload_endpoint`
-- Upload URL: use the exact `uploadUrl` returned by `get_image_upload_endpoint`; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
+- Preferred tool: `create_image_upload_session`
+- Static discovery tool: `get_image_upload_endpoint`, only for clients that already manage MCP OAuth internally.
+- Upload URL: use the exact `uploadUrl` returned by `create_image_upload_session`; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
 - Method: `POST`
-- Required headers: `Authorization: Bearer <MCP OAuth access token>`, `Content-Type: image/*`, `x-flare-file-size`
+- Required headers: `Authorization: Bearer <uploadToken>`, `Content-Type: image/*`, `x-flare-file-size`
 - Useful headers: `x-flare-filename`, `x-flare-source-model`
 - Body: raw file bytes
+
+Do not look for or expose the MCP OAuth access token in shell commands. The `uploadToken` returned by `create_image_upload_session` is short-lived and scoped to binary image upload.
+
+For data URLs or base64 image data, write the bytes to a local image file first, then use the same upload-session flow.
 
 After upload, use the returned `assetId` with `insert_asset_image`.
