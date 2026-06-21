@@ -60,4 +60,6 @@ When no size is specified:
 - Otherwise choose a conservative visible size near the current viewport or selected frame.
 - Keep aspect ratio unless the user requests cropping, fill, or distortion.
 
+For raw image-node edits, distinguish source geometry from display size. A Fabric image node's `geometry.width/height` can become the crop frame when smaller than the source bitmap. To resize without cropping, keep `geometry.width/height` at the intrinsic image dimensions and set `scaleX/scaleY` so the rendered bounds match the desired display size.
+
 For generated images placed on a board/frame, prefer `placement: "fill"` with `anchorNodeId` and no `parentId`.

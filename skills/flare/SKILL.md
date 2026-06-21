@@ -47,6 +47,7 @@ Read only the references needed for the current request:
 ## Canvas Defaults
 
 - Treat canvas geometry as center-origin scene coordinates: `x/y` are the layer center, and `width/height` are unscaled layer size.
+- For raw image-node patches, do not shrink `geometry.width/height` to resize a bitmap unless the user wants a crop. Preserve the image's intrinsic source `width/height` and use `scaleX/scaleY` for display sizing. Specialized insert tools should handle this when asset dimensions are known.
 - Insert generated images as root canvas layers by default, not inside the selected frame/artboard.
 - Pass `parentId` only when the user explicitly asks to place the layer inside a frame, group, or artboard.
 - Use `anchorNodeId` and `placement` for relative positioning; do not assume this implies hierarchy.
