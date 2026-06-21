@@ -8,7 +8,7 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
 3. Identify `projectId` from the project URL or MCP project list.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
-5. Call `create_image_upload_session`, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. The upload response returns `assetId` and an `asset` object.
+5. Call `create_image_upload_session`, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
 6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
 8. Verify with `get_canvas_snapshot` and, if visible, the browser.
@@ -52,7 +52,7 @@ Do not use this workflow for plain "生成图片/照片/插图" requests, or phr
 For image bytes or data URLs:
 
 Write the image to a local file, then binary-upload the file with the MCP/client upload endpoint.
-Use `create_image_upload_session` for local files unless the MCP client has a built-in binary upload helper that already handles auth.
+Use `create_image_upload_session` for local files unless the MCP client has a built-in binary upload helper that already handles auth. If `create_image_upload_session` is unavailable, use the generic `uploadToken` returned by `get_image_upload_endpoint`.
 
 For public HTTPS URLs:
 

@@ -57,14 +57,14 @@ If a tool is missing, adapt to the available list and report the missing capabil
 For local image files, use the MCP/client binary upload path rather than JSON base64.
 
 - Preferred tool: `create_image_upload_session`
-- Static discovery tool: `get_image_upload_endpoint`, only for clients that already manage MCP OAuth internally.
-- Upload URL: use the exact `uploadUrl` returned by `create_image_upload_session`; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
+- Fallback/legacy tool: `get_image_upload_endpoint`; use its returned `uploadToken` when `create_image_upload_session` is not exposed in the current client's cached tool list.
+- Upload URL: use the exact `uploadUrl` returned by the tool; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
 - Method: `POST`
 - Required headers: `Authorization: Bearer <uploadToken>`, `Content-Type: image/*`, `x-flare-file-size`
 - Useful headers: `x-flare-filename`, `x-flare-source-model`
 - Body: raw file bytes
 
-Do not look for or expose the MCP OAuth access token in shell commands. The `uploadToken` returned by `create_image_upload_session` is short-lived and scoped to binary image upload.
+Do not look for or expose the MCP OAuth access token in shell commands. The `uploadToken` returned by `create_image_upload_session` or `get_image_upload_endpoint` is short-lived and scoped to binary image upload.
 
 For data URLs or base64 image data, write the bytes to a local image file first, then use the same upload-session flow.
 
