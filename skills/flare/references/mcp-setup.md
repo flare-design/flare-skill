@@ -57,7 +57,7 @@ If a tool is missing, adapt to the available list and report the missing capabil
 For local image files, use the MCP/client binary upload path rather than JSON base64.
 
 - Discovery tool: `get_image_upload_endpoint`
-- Upload path: `/mcp/uploads/images`
+- Upload URL: use the exact `uploadUrl` returned by `get_image_upload_endpoint`; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
 - Method: `POST`
 - Required headers: `Authorization: Bearer <MCP OAuth access token>`, `Content-Type: image/*`, `x-flare-file-size`
 - Useful headers: `x-flare-filename`, `x-flare-source-model`
