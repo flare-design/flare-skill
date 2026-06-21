@@ -4,22 +4,23 @@
 
 Use this when the user wants Claude, Codex, or another agent/client to generate or obtain an image and place it in Flare.
 
-1. Use the available client-side image generation or retrieval capability to create or obtain the bitmap. Obtain a `dataUrl`, `dataBase64 + mimeType`, or public HTTPS `imageUrl`.
-2. Identify `projectId` from the project URL or MCP project list.
-3. Read `get_live_canvas_context` when placement should respect current viewport or selection.
-4. Call `insert_agent_generated_image`. If unavailable, fall back to `insert_codex_generated_image` or `insert_generated_image`.
-5. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
-6. Verify with `get_canvas_snapshot` and, if visible, the browser.
+1. Use the available client-side image generation or retrieval capability to create or obtain the bitmap.
+2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
+3. Identify `projectId` from the project URL or MCP project list.
+4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
+5. Use `get_image_upload_endpoint` when available, then binary-upload the local file into Assets. The upload response returns `assetId` and an `asset` object.
+6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
+7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
+8. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
 Plain image requests like `/flare 生成一张照片` should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
 
-Example arguments:
+Example insertion arguments after binary upload:
 
 ```json
 {
   "projectId": "project-id",
-  "dataUrl": "data:image/png;base64,...",
-  "fileName": "agent-glass-cube.png",
+  "assetId": "asset-id-returned-by-upload",
   "name": "Agent glass cube",
   "x": 0,
   "y": 0,
@@ -34,7 +35,7 @@ Use this only when the user explicitly wants to test or use Flare's own generati
 
 1. Call `create_generation_job` with the requested image/video prompt and model options.
 2. Poll `get_generation_job` until complete or failed.
-3. If the output is not automatically present in Assets/canvas, use the generated output URL or bytes with `insert_generated_image`.
+3. If the output is not automatically present in Assets/canvas, import a public output URL with `insert_generated_image`, or save output bytes to a local file and binary-upload them before `insert_asset_image`.
 4. Verify the asset, canvas node, and job status.
 
 Do not use this workflow for plain "生成图片/照片/插图" requests, or phrases like "Codex 内生图", "Claude 自己生成", or "不要调用画布生图"; use the agent-generated image workflow instead.
@@ -51,7 +52,7 @@ Do not use this workflow for plain "生成图片/照片/插图" requests, or phr
 For image bytes or data URLs:
 
 ```text
-save_image_asset
+Write the image to a local file, then binary-upload the file with the MCP/client upload endpoint.
 ```
 
 For public HTTPS URLs:

@@ -4,9 +4,10 @@
 
 | User intent | Preferred tool path | Avoid |
 | --- | --- | --- |
-| "/flare 生成一张图片/照片/插图" | Use client/agent image generation, then `insert_agent_generated_image` | `create_generation_job` |
-| "Agent/Claude/Codex 生成图片放到画布" | Use the client or agent's image generation capability, then `insert_agent_generated_image` | `create_generation_job` |
-| "把这张图片/URL 存到素材" | `save_image_asset` or `save_image_asset_from_url` | Raw canvas patch without asset |
+| "/flare 生成一张图片/照片/插图" | Use client/agent image generation, save the result as a local file, binary-upload it, then `insert_asset_image` | `create_generation_job` |
+| "Agent/Claude/Codex 生成图片放到画布" | Use the client or agent's image generation capability, save a local file, binary-upload it, then `insert_asset_image` | `create_generation_job` |
+| "把这张本地图片存到素材" | Binary-upload the local file with the MCP/client upload endpoint | Raw canvas patch without asset |
+| "把这个图片 URL 存到素材" | `save_image_asset_from_url` | Raw canvas patch without asset |
 | "把已有素材放到画布" | `insert_asset_image` or `insert_asset_video` | Re-uploading the same asset |
 | "用 Flare/画布 AI 生图" | `create_generation_job`, then `get_generation_job` | Client-side generation unless asked |
 | "看当前选中了什么" | `get_live_canvas_context` | Guessing from screenshot only |
@@ -46,7 +47,8 @@ If wording is mixed, ask one concise clarification before spending generation cr
 
 For agent-generated images:
 
-- Prefer `insert_agent_generated_image` with `dataUrl`, `dataBase64 + mimeType`, `imageUrl`, or `url`. Use `insert_codex_generated_image` only as a compatibility fallback on older servers.
+- Prefer local-file binary upload plus `insert_asset_image`. Use `insert_agent_generated_image` only for public HTTPS `imageUrl` or `url`.
+- If an agent has image data as a data URL or base64 string, first save it to a local image file; do not pass it in MCP JSON.
 - Set `sourceModel` to the client or model name when known; otherwise let the MCP server use its default provenance.
 - Include a useful `fileName` and `name` when the user gave a subject.
 

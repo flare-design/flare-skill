@@ -42,7 +42,7 @@ Before giving up on an operation, verify:
 The Flare MCP server should expose tools for:
 
 - Projects: `list_projects`, `get_project`
-- Assets: `list_assets`, `save_image_asset`, `save_image_asset_from_url`
+- Assets: `list_assets`, `get_image_upload_endpoint`, `save_image_asset_from_url`
 - Generated image insertion: `insert_agent_generated_image`, `insert_codex_generated_image`, `insert_generated_image`. Prefer `insert_agent_generated_image`; `insert_codex_generated_image` is a compatibility alias for older clients and servers.
 - Canvas reads: `get_canvas_snapshot`, `get_live_canvas_context`, `export_project_snapshot`
 - Canvas writes: `insert_asset_image`, `insert_asset_video`, `apply_canvas_patch`, `insert_text`, `insert_rect`, `create_frame`, `update_text`, `set_layer_style`, `reorder_nodes`, `group_nodes`, `delete_nodes`
@@ -51,3 +51,16 @@ The Flare MCP server should expose tools for:
 - Render jobs: `create_render_job`, `get_render_job`, `list_render_jobs`
 
 If a tool is missing, adapt to the available list and report the missing capability clearly.
+
+## Binary Image Upload
+
+For local image files, use the MCP/client binary upload path rather than JSON base64.
+
+- Discovery tool: `get_image_upload_endpoint`
+- Upload path: `/mcp/uploads/images`
+- Method: `POST`
+- Required headers: `Authorization: Bearer <MCP OAuth access token>`, `Content-Type: image/*`, `x-flare-file-size`
+- Useful headers: `x-flare-filename`, `x-flare-source-model`
+- Body: raw file bytes
+
+After upload, use the returned `assetId` with `insert_asset_image`.
