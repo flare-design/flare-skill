@@ -1,0 +1,13 @@
+interface:
+  display_name: "Flare"
+  short_description: "Operate Flare projects, canvas, assets, media, and motion"
+  default_prompt: "Use $flare to operate a Flare project through MCP: canvas, assets, generation, motion, and rendering."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "flare"
+      description: "Flare MCP server for project, canvas, asset, generation, motion, and render operations."
+      transport: "streamable_http"
+      url: "https://mcp.flare.design/mcp"
+policy:
+  allow_implicit_invocation: true
