@@ -2,7 +2,7 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Flare
@@ -42,8 +42,8 @@ Read only the references needed for the current request:
 
 ## Core Routing Rules
 
-- **Plain "generate an image/photo" requests default to agent-side generation**: if the user asks to generate a picture/photo/illustration for Flare and does not explicitly say to use Flare backend generation, use the agent/client image generation capability first. If the result is a local file, call `create_image_upload_session`, binary-upload it to Assets with the returned upload token, then insert it with `insert_asset_image`. If the current client only exposes `get_image_upload_endpoint`, use its returned `uploadToken`.
-- **The agent generated or obtained an image**: prefer a local file or public HTTPS URL. For local files, create an MCP upload session or use the generic upload token returned by `get_image_upload_endpoint`, upload raw bytes, and then `insert_asset_image`; do not put base64 or data URLs in MCP JSON. If the image currently exists as a data URL or base64 string, save it to a local image file first, then upload that file. Use `insert_agent_generated_image` only for public URLs. Do not call `create_generation_job`.
+- **Plain "generate an image/photo" requests default to agent-side generation**: if the user asks to generate a picture/photo/illustration for Flare and does not explicitly say to use Flare backend generation, use the agent/client image generation capability first. If the result is a local file, call `create_image_upload_session` with provenance (`sourceClient`, `generationPrompt`, `generationModel`, `generationTool` when known), binary-upload it to Assets with the returned upload token, then insert it with `insert_asset_image`. If the current client only exposes `get_image_upload_endpoint`, use its returned `uploadToken`.
+- **The agent generated or obtained an image**: prefer a local file or public HTTPS URL. For local files, create an MCP upload session or use the generic upload token returned by `get_image_upload_endpoint`, upload raw bytes, and then `insert_asset_image`; do not put base64 or data URLs in MCP JSON. If the image currently exists as a data URL or base64 string, save it to a local image file first, then upload that file. Use `insert_agent_generated_image` only for public URLs. Do not call `create_generation_job`. Treat these assets as generated media entering Flare through MCP binary upload, not ordinary user uploads.
 - **Flare should generate media**: call `create_generation_job`, then poll `get_generation_job` or inspect `list_generation_jobs`, only when the user explicitly asks for Flare/canvas/backend generation or is testing that queue.
 - **Need supported model/preset/options**: call the relevant `list_*` capability tool first. Treat these dynamic MCP responses as the source of truth, and use the reference files as fallback guidance.
 - **Save user or agent media to Assets only**: create an upload session and binary-upload local files; call `save_image_asset_from_url` for public HTTPS URLs.
@@ -68,6 +68,6 @@ Read only the references needed for the current request:
 - Prefer user-visible, durable outputs: generated media should land in Assets and on the canvas when the user asks to place it.
 - Keep generated image data as files. Do not convert local files to base64 for MCP arguments; if an image starts as base64 or data URL, write it to a local file before uploading.
 - Do not search shell environment, config files, browser storage, or logs for the MCP OAuth access token. For local binary upload, use the short-lived `uploadToken` returned by `create_image_upload_session`.
-- Keep provenance clear: agent-generated media should have generation/source metadata where the MCP tool supports it.
+- Keep provenance clear: agent-generated media should have generation/source metadata where the MCP tool supports it. Use `sourceClient` for the calling agent/client and `generationModel` for the actual image model; keep the prompt in `generationPrompt` instead of a note-only description.
 - Avoid duplicate jobs or duplicate layers. If a prior operation partially succeeded, inspect assets, canvas nodes, and jobs before retrying.
 - When a request is ambiguous between agent-side generation and Flare backend generation, default to agent-side generation for plain "生成图片/照片/插图" wording. Use Flare backend generation only for explicit wording like "用画布生成", "Flare 后端生成", or "create_generation_job".

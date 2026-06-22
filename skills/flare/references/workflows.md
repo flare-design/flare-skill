@@ -8,12 +8,14 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
 3. Identify `projectId` from the project URL or MCP project list.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
-5. Call `create_image_upload_session`, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
+5. Call `create_image_upload_session` with provenance, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. Use `sourceClient` for the calling agent/client (`codex`, `claude`, `chatgpt`, `cursor`), `generationPrompt` for the prompt, `generationModel` for the actual image model, and `generationTool` for the generation surface when known. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
 6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
 8. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
 Plain image requests like `/flare 生成一张照片` should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
+
+This path records the asset as generated media that entered Flare through MCP binary upload. It is not an ordinary user upload and it should not create a Flare backend generation job record.
 
 Example insertion arguments after binary upload:
 
@@ -54,7 +56,7 @@ Do not use this workflow for plain "生成图片/照片/插图" requests, or phr
 For image bytes or data URLs:
 
 Write the image to a local file, then binary-upload the file with the MCP/client upload endpoint.
-Use `create_image_upload_session` for local files unless the MCP client has a built-in binary upload helper that already handles auth. If `create_image_upload_session` is unavailable, use the generic `uploadToken` returned by `get_image_upload_endpoint`.
+Use `create_image_upload_session` for local files unless the MCP client has a built-in binary upload helper that already handles auth. Pass provenance when the media came from agent-side generation. If `create_image_upload_session` is unavailable, use the generic `uploadToken` returned by `get_image_upload_endpoint`.
 
 For public HTTPS URLs:
 

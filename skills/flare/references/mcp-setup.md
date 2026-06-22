@@ -61,7 +61,7 @@ For local image files, use the MCP/client binary upload path rather than JSON ba
 - Upload URL: use the exact `uploadUrl` returned by the tool; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
 - Method: `POST`
 - Required headers: `Authorization: Bearer <uploadToken>`, `Content-Type: image/*`, `x-flare-file-size`
-- Useful headers: `x-flare-filename`, `x-flare-source-model`
+- Useful headers: `x-flare-filename`, `x-flare-source-model`, `x-flare-source-client`, `x-flare-generation-prompt`, `x-flare-generation-model`, `x-flare-generation-tool`
 - Body: raw file bytes
 
 Do not look for or expose the MCP OAuth access token in shell commands. The `uploadToken` returned by `create_image_upload_session` or `get_image_upload_endpoint` is short-lived and scoped to binary image upload.
