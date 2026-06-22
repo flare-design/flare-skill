@@ -44,12 +44,18 @@ Use this when the user has annotated an image in Flare and asks the agent to rev
 
 1. Identify `projectId` from the project URL, an explicit user-provided id, or a user-selected recent project. If unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those candidates, and wait for the user to choose.
 2. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` when the user specifies a target; otherwise let the tool use the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
-3. Use the returned target image URL, structured text/arrow annotations with 0..1 normalized target points, `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction.
-4. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
-5. Keep the revised output as a local file. If the generation result is a data URL or base64 string, decode it to a local image file first.
-6. Call `create_image_upload_session` with provenance. Include the original prompt if known and mention the annotation session id in `generationNotes` when useful.
-7. Binary-upload raw file bytes, then call `insert_asset_image` with the returned `assetId`. Use the `suggestedPlacement` fields from `get_image_annotation_context` so the new image appears beside the original.
-8. Verify with `get_canvas_snapshot` and, if visible, the browser.
+3. Treat the returned `annotations` as the source of truth. Use `target.src` as the original image URL; use `annotatedImage` only as a visual reference composite. Do not replace the structured coordinates with screenshot interpretation.
+4. Interpret annotation geometry as target-image coordinates:
+   - `arrow.to` is the exact image point to revise.
+   - `rect.bounds` and `ellipse.bounds` are target-image regions.
+   - `text.x/y` is a target-image text anchor.
+   - `arrow.from` and `labelPosition` are layout hints for the composite and may sit outside the image.
+5. Use the target image URL, structured annotation intent, optional `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction.
+6. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
+7. Keep the revised output as a local file. If the generation result is a data URL or base64 string, decode it to a local image file first.
+8. Call `create_image_upload_session` with provenance. Include the original prompt if known and mention the annotation session id in `generationNotes` when useful.
+9. Binary-upload raw file bytes, then call `insert_asset_image` with the returned `assetId`. Use the `suggestedPlacement` fields from `get_image_annotation_context` so the new image appears beside the original.
+10. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
 This workflow reads annotation context only. It does not use Flare's platform annotation generation or backend generation pipeline.
 

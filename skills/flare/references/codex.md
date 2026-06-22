@@ -13,7 +13,7 @@ Common Chinese triggers:
 - `用你自己的生图能力`
 
 1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before editing.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.11"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.13"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Load and follow the installed `$imagegen` skill when available.
 4. Generate the image with Codex's image generation path, not Flare's `create_generation_job`.
 5. Keep the generated bitmap as a local file. Inspect its dimensions and MIME type if available. Do not convert local files to base64 for MCP arguments. If the generation API returns a data URL or base64 string, decode and write it to a local image file before any Flare MCP call.
@@ -37,13 +37,19 @@ Do not use the Flare app UI upload flow as a fallback for agent-generated images
 Use this workflow when the user says to revise an image from Flare canvas annotations, such as `按照批注改图`.
 
 1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before reading annotation context.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.11"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.13"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
-4. Use the returned target image URL, structured annotations with 0..1 normalized target points, `annotatedImage` composite preview, and original asset provenance to generate the revised image with Codex image generation. Do not call Flare `create_generation_job`.
-5. Save the revised bitmap as a local file. If the image generation result is a data URL or base64 string, decode it to a local file before any MCP call.
-6. Upload the local file through `create_image_upload_session` and raw binary upload. Include provenance fields: `sourceClient: "codex"`, `generationPrompt`, `generationModel`, `generationTool`, and a concise `generationNotes` referencing the annotation session.
-7. Call `insert_asset_image` with the returned `assetId` and the `suggestedPlacement` from the annotation context so the revised image appears beside the original.
-8. Verify through `get_canvas_snapshot` and the in-app browser.
+4. Treat `target.src` and `annotations` as the edit contract. Use `annotatedImage` as a visual reference, not as the only source of truth. Do not infer coordinates from a browser screenshot when the structured annotations are available.
+5. Interpret annotations precisely:
+   - `arrow.to` is the target-image point to revise.
+   - `rect.bounds` and `ellipse.bounds` are target-image regions.
+   - `text.x/y` is a target-image text anchor.
+   - `arrow.from` and `labelPosition` are layout/context hints and may be outside the target image.
+6. Generate the revised image with Codex image generation using the target image URL, structured annotations, optional `annotatedImage` composite preview, and original asset provenance. Do not call Flare `create_generation_job`.
+7. Save the revised bitmap as a local file. If the image generation result is a data URL or base64 string, decode it to a local file before any MCP call.
+8. Upload the local file through `create_image_upload_session` and raw binary upload. Include provenance fields: `sourceClient: "codex"`, `generationPrompt`, `generationModel`, `generationTool`, and a concise `generationNotes` referencing the annotation session.
+9. Call `insert_asset_image` with the returned `assetId` and the `suggestedPlacement` from the annotation context so the revised image appears beside the original.
+10. Verify through `get_canvas_snapshot` and the in-app browser.
 
 ## Browser Behavior
 
