@@ -44,7 +44,7 @@ The Flare MCP server should expose tools for:
 - Projects: `list_projects`, `get_project`
 - Assets: `list_assets`, `create_image_upload_session`, `get_image_upload_endpoint`, `save_image_asset_from_url`
 - Generated image insertion: `insert_agent_generated_image`, `insert_codex_generated_image`, `insert_generated_image`. Prefer `insert_agent_generated_image`; `insert_codex_generated_image` is a compatibility alias for older clients and servers.
-- Canvas reads: `get_canvas_snapshot`, `get_live_canvas_context`, `export_project_snapshot`
+- Canvas reads: `get_canvas_snapshot`, `get_live_canvas_context`, `get_image_annotation_context`, `export_project_snapshot`
 - Canvas writes: `insert_asset_image`, `insert_asset_video`, `apply_canvas_patch`, `insert_text`, `insert_rect`, `create_frame`, `update_text`, `set_layer_style`, `reorder_nodes`, `group_nodes`, `delete_nodes`
 - Generation jobs: `create_generation_job`, `get_generation_job`, `list_generation_jobs`
 - Motion and timeline: `apply_motion_design`, `add_audio_track`, `add_caption_track`

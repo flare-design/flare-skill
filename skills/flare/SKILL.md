@@ -2,7 +2,7 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 # Flare
@@ -36,7 +36,7 @@ Read only the references needed for the current request:
 2. Confirm Flare MCP is connected. Use tool discovery when available; if the Flare MCP server is missing, follow `references/mcp-setup.md`.
 3. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
 4. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.
-5. Choose the highest-level safe tool. Prefer specialized tools like `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
+5. Choose the highest-level safe tool. Prefer specialized tools like `get_image_annotation_context` for annotated image revision, `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
 6. Apply the change with center-origin scene coordinates. Avoid unintended parenting.
 7. Verify with a snapshot, job status, asset list, or browser view. Report concrete ids and any remaining uncertainty.
 
@@ -44,6 +44,7 @@ Read only the references needed for the current request:
 
 - **Plain "generate an image/photo" requests default to agent-side generation**: if the user asks to generate a picture/photo/illustration for Flare and does not explicitly say to use Flare backend generation, use the agent/client image generation capability first. If the result is a local file, call `create_image_upload_session` with provenance (`sourceClient`, `generationPrompt`, `generationModel`, `generationTool` when known), binary-upload it to Assets with the returned upload token, then insert it with `insert_asset_image`. If the current client only exposes `get_image_upload_endpoint`, use its returned `uploadToken`.
 - **The agent generated or obtained an image**: prefer a local file or public HTTPS URL. For local files, create an MCP upload session or use the generic upload token returned by `get_image_upload_endpoint`, upload raw bytes, and then `insert_asset_image`; do not put base64 or data URLs in MCP JSON. If the image currently exists as a data URL or base64 string, save it to a local image file first, then upload that file. Use `insert_agent_generated_image` only for public URLs. Do not call `create_generation_job`. Treat these assets as generated media entering Flare through MCP binary upload, not ordinary user uploads.
+- **Revise an image from Flare annotations**: call `get_image_annotation_context` first. Use the returned target image, structured text/arrow annotations, optional annotated screenshot, and suggested placement. Generate the revised image with the agent/client image capability, upload the local file with `create_image_upload_session`, then call `insert_asset_image` next to the original. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
 - **Flare should generate media**: call `create_generation_job`, then poll `get_generation_job` or inspect `list_generation_jobs`, only when the user explicitly asks for Flare/canvas/backend generation or is testing that queue.
 - **Need supported model/preset/options**: call the relevant `list_*` capability tool first. Treat these dynamic MCP responses as the source of truth, and use the reference files as fallback guidance.
 - **Save user or agent media to Assets only**: create an upload session and binary-upload local files; call `save_image_asset_from_url` for public HTTPS URLs.

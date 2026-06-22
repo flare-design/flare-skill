@@ -6,6 +6,7 @@
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | "/flare 生成一张图片/照片/插图"         | Use client/agent image generation, save the result as a local file, call `create_image_upload_session` or fallback `get_image_upload_endpoint`, binary-upload it, then `insert_asset_image`       | `create_generation_job`                                                     |
 | "Agent/Claude/Codex 生成图片放到画布"   | Use the client or agent's image generation capability, save a local file, call `create_image_upload_session` or fallback `get_image_upload_endpoint`, binary-upload it, then `insert_asset_image` | `create_generation_job`                                                     |
+| "按照批注改图/根据画布批注重新生成"     | Call `get_image_annotation_context`, use agent/client image generation with the target image and annotations, binary-upload the revised local file, then `insert_asset_image` beside the original | `create_generation_job`, platform annotation generation                     |
 | "把这张本地图片存到素材"                | Call `create_image_upload_session` or fallback `get_image_upload_endpoint`, then binary-upload the local file with the returned `uploadToken`                                                     | Raw canvas patch without asset                                              |
 | "把这个图片 URL 存到素材"               | `save_image_asset_from_url`                                                                                                                                                                       | Raw canvas patch without asset                                              |
 | "把已有素材放到画布"                    | `insert_asset_image` or `insert_asset_video`                                                                                                                                                      | Re-uploading the same asset                                                 |
@@ -35,6 +36,7 @@ Default to agent-side/client-side generation when the user asks to generate an i
 - "你生成一张图再放到画布"
 - "不要调用画布生图"
 - "用你自己的生图能力"
+- "按照批注改图"
 
 Use Flare generation job only when the user says:
 

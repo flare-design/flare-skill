@@ -31,6 +31,18 @@ Do not run shell searches for OAuth, token, or MCP credentials. Codex shell does
 
 Do not use the Flare app UI upload flow as a fallback for agent-generated images. Use MCP upload sessions so Assets, provenance, and canvas insertion stay deterministic.
 
+## Codex Annotated Image Revision
+
+Use this workflow when the user says to revise an image from Flare canvas annotations, such as `按照批注改图`.
+
+1. Open or focus the current in-app browser tab when it shows Flare before reading context. If no Flare project is open, navigate to the target project URL.
+2. Call `get_image_annotation_context` with `projectId`. Pass `includeScreenshot: true` when useful. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection.
+3. Use the returned target image, structured annotations, optional annotated screenshot, and original asset provenance to generate the revised image with Codex image generation. Do not call Flare `create_generation_job`.
+4. Save the revised bitmap as a local file. If the image generation result is a data URL or base64 string, decode it to a local file before any MCP call.
+5. Upload the local file through `create_image_upload_session` and raw binary upload. Include provenance fields: `sourceClient: "codex"`, `generationPrompt`, `generationModel`, `generationTool`, and a concise `generationNotes` referencing the annotation session.
+6. Call `insert_asset_image` with the returned `assetId` and the `suggestedPlacement` from the annotation context so the revised image appears beside the original.
+7. Verify through `get_canvas_snapshot` and the in-app browser.
+
 ## Browser Behavior
 
 - Prefer the current in-app browser tab when it already shows `app.flare.design` or `app.staging.flare.design`.
