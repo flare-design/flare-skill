@@ -13,7 +13,14 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
 8. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
-Plain image requests like `/flare 生成一张照片` should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
+Plain image/photo/illustration requests should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
+
+Example agent-side requests:
+
+- `/flare 生成一张照片`
+- `Codex 内生图`
+- `不要调用画布生图`
+- `用你自己的生图能力`
 
 This path records the asset as generated media that entered Flare through MCP binary upload. It is not an ordinary user upload and it should not create a Flare backend generation job record.
 
@@ -42,7 +49,12 @@ Use this only when the user explicitly wants to test or use Flare's own generati
 5. If the output is not automatically present in Assets/canvas, import a public output URL with `insert_generated_image`, or save output bytes to a local file, create an upload session, binary-upload them, then `insert_asset_image`.
 6. Verify the asset, canvas node, and job status.
 
-Do not use this workflow for plain "生成图片/照片/插图" requests, or phrases like "Codex 内生图", "Claude 自己生成", or "不要调用画布生图"; use the agent-generated image workflow instead.
+Do not use this workflow for plain agent-side image requests. Use the agent-generated image workflow instead for prompts such as:
+
+- `生成图片`
+- `Codex 内生图`
+- `Claude 自己生成`
+- `不要调用画布生图`
 
 ## Existing Asset To Canvas
 

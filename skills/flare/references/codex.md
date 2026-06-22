@@ -4,7 +4,13 @@ Use this reference only when the agent is running inside Codex and the user want
 
 ## Codex Image Generation To Flare Canvas
 
-For requests like `/flare 生成一张照片`, `/flare 生成图片放到画布`, or "用你自己的生图能力":
+Use this workflow when the user wants Codex to generate the image itself and place it in Flare.
+
+Common Chinese triggers:
+
+- `/flare 生成一张照片`
+- `/flare 生成图片放到画布`
+- `用你自己的生图能力`
 
 1. Open or focus the current in-app browser tab when it shows Flare before generating or inserting. If no Flare project is open, navigate to the target project URL before editing so the user can watch the canvas update.
 2. Load and follow the installed `$imagegen` skill when available.
