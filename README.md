@@ -52,6 +52,8 @@ npx skills check
 npx skills update flare
 ```
 
+Recent Flare MCP servers expose `check_client_setup`, which lets the skill remind agents to update when the local skill version is older than the server-recommended version.
+
 If the skill was installed globally and you want to update all global skills:
 
 ```bash
@@ -66,13 +68,13 @@ Installing this skill only gives agents the Flare operating instructions. The Fl
 
 ## Versioning
 
-The skill uses semantic versioning in `skills/flare/SKILL.md` under `metadata.version`. Releases should also be tagged in git, for example `v0.1.10`.
+The skill uses semantic versioning in `skills/flare/SKILL.md` under `metadata.version`. Releases should also be tagged in git, for example `v0.1.11`.
 
 For skill behavior changes:
 
 ```bash
 git commit -am "Update Flare skill workflow"
-git tag v0.1.10
+git tag v0.1.11
 git push origin main --tags
 ```
 

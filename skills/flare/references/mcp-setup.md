@@ -39,10 +39,29 @@ Before giving up on an operation, verify:
 3. OAuth is authorized for the same Flare account/workspace as the browser session.
 4. The project id in the URL matches the `projectId` passed to MCP tools.
 
+## Skill Update Check
+
+When `check_client_setup` is exposed, call it once before the first visible canvas write in a conversation:
+
+```json
+{
+  "client": "codex",
+  "skillName": "flare",
+  "installedSkillVersion": "0.1.11"
+}
+```
+
+Use the actual client name when known, such as `codex`, `claude-code`, `chatgpt`, or `cursor`.
+
+- If `updateRequired` is true, stop before editing and ask the user to run the returned `updateCommand`.
+- If `updateAvailable` is true but `updateRequired` is false, mention the returned `updateCommand` once, then continue unless the current task depends on the newer workflow.
+- If the tool is missing from an older MCP server, continue with the available tools and do not invent a version check.
+
 ## Expected Tool Families
 
 The Flare MCP server should expose tools for:
 
+- Client setup: `check_client_setup`
 - Projects: `list_projects`, `get_project`
 - Assets: `list_assets`, `create_image_upload_session`, `get_image_upload_endpoint`, `save_image_asset_from_url`
 - Generated image insertion: `insert_agent_generated_image`, `insert_codex_generated_image`, `insert_generated_image`. Prefer `insert_agent_generated_image`; `insert_codex_generated_image` is a compatibility alias for older clients and servers.

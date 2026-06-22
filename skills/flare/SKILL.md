@@ -2,7 +2,7 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.10"
+  version: "0.1.11"
 ---
 
 # Flare
@@ -34,11 +34,12 @@ Read only the references needed for the current request:
 
 1. Identify the environment and project. If the user is already on a Flare project URL, use that project id. If the user gave a project URL or id, use it. If the target is unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those recent projects in the conversation, and wait for the user to choose before editing. Do not guess the project.
 2. Confirm Flare MCP is connected. Use tool discovery when available; if the Flare MCP server is missing, follow `references/mcp-setup.md`.
-3. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
-4. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.
-5. Choose the highest-level safe tool. Prefer specialized tools like `get_image_annotation_context` for annotated image revision, `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
-6. Apply the change with center-origin scene coordinates. Avoid unintended parenting.
-7. Verify with a snapshot, job status, asset list, or browser view. Report concrete ids and any remaining uncertainty.
+3. Before the first visible canvas write in a conversation, call `check_client_setup` when the tool is exposed. Pass `skillName: "flare"` and `installedSkillVersion: "0.1.11"`; include the client name when known. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention the returned `updateCommand` once and continue when the current workflow is still compatible.
+4. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
+5. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.
+6. Choose the highest-level safe tool. Prefer specialized tools like `get_image_annotation_context` for annotated image revision, `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
+7. Apply the change with center-origin scene coordinates. Avoid unintended parenting.
+8. Verify with a snapshot, job status, asset list, or browser view. Report concrete ids and any remaining uncertainty.
 
 ## Core Routing Rules
 
