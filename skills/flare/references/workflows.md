@@ -43,8 +43,8 @@ Example insertion arguments after binary upload:
 Use this when the user has annotated an image in Flare and asks the agent to revise it from those notes.
 
 1. Identify `projectId` from the project URL or MCP project list.
-2. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` when the user specifies a target; otherwise let the tool use the active selection. Set `includeScreenshot: true` when the client can handle an image data URL in context.
-3. Use the returned target image, structured text/arrow annotations, optional screenshot, and asset provenance to produce a revised prompt or image-edit instruction.
+2. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` when the user specifies a target; otherwise let the tool use the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
+3. Use the returned target image URL, structured text/arrow annotations with 0..1 normalized target points, `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction.
 4. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
 5. Keep the revised output as a local file. If the generation result is a data URL or base64 string, decode it to a local image file first.
 6. Call `create_image_upload_session` with provenance. Include the original prompt if known and mention the annotation session id in `generationNotes` when useful.
