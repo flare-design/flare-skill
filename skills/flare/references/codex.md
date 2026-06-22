@@ -12,11 +12,11 @@ Common Chinese triggers:
 - `/flare 生成图片放到画布`
 - `用你自己的生图能力`
 
-1. Open or focus the current in-app browser tab when it shows Flare before generating or inserting. If no Flare project is open, navigate to the target project URL before editing so the user can watch the canvas update.
+1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before editing.
 2. Load and follow the installed `$imagegen` skill when available.
 3. Generate the image with Codex's image generation path, not Flare's `create_generation_job`.
 4. Keep the generated bitmap as a local file. Inspect its dimensions and MIME type if available. Do not convert local files to base64 for MCP arguments. If the generation API returns a data URL or base64 string, decode and write it to a local image file before any Flare MCP call.
-5. Identify `projectId` from the in-app browser URL or MCP project list.
+5. Identify `projectId` from the in-app browser URL, the user's explicit URL/id, or the selected recent project. Do not guess between multiple projects.
 6. Read Flare MCP state with `get_live_canvas_context` and/or `get_canvas_snapshot`.
 7. Call `create_image_upload_session` with the local file name, byte size, MIME type, and provenance. Use `sourceClient: "codex"`, keep legacy `sourceModel: "codex"` when accepted, put the actual image model in `generationModel`, put the prompt in `generationPrompt`, and put the generation surface in `generationTool` (for example `imagegen`) when known. If the current Codex thread only exposes `get_image_upload_endpoint`, call it and use its returned generic `uploadToken`.
 8. Binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`; use raw file bytes, `Content-Type`, `x-flare-file-size`, and optional `x-flare-filename`. Do not put the local image file, data URL, or base64 string into MCP JSON.
@@ -35,7 +35,7 @@ Do not use the Flare app UI upload flow as a fallback for agent-generated images
 
 Use this workflow when the user says to revise an image from Flare canvas annotations, such as `按照批注改图`.
 
-1. Open or focus the current in-app browser tab when it shows Flare before reading context. If no Flare project is open, navigate to the target project URL.
+1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before reading annotation context.
 2. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
 3. Use the returned target image URL, structured annotations with 0..1 normalized target points, `annotatedImage` composite preview, and original asset provenance to generate the revised image with Codex image generation. Do not call Flare `create_generation_job`.
 4. Save the revised bitmap as a local file. If the image generation result is a data URL or base64 string, decode it to a local file before any MCP call.
@@ -45,9 +45,12 @@ Use this workflow when the user says to revise an image from Flare canvas annota
 
 ## Browser Behavior
 
-- Prefer the current in-app browser tab when it already shows `app.flare.design` or `app.staging.flare.design`.
-- If the user says they want to watch the operation, open or focus the in-app browser before generating or inserting and keep it visible through verification.
-- Do not log in as a different user. If auth is missing, ask the user to log in, then continue.
+- Always open or focus the in-app browser before Flare canvas generation, insertion, annotation revision, motion, or other visible canvas edits in Codex desktop.
+- Prefer the current in-app browser tab when it already shows `app.flare.design` or `app.staging.flare.design`; otherwise navigate to the target project URL when it is known.
+- If no target project is clear, call `list_projects` with `limit: 5` and `status: "active"`, present the recent project names, ids, and updated times, then wait for the user to pick one. Do not infer the project from the first result.
+- If Flare is not logged in, ask the user to log in in the in-app browser and wait. Continue only after the browser session is authenticated.
+- Keep the in-app browser visible through verification so the user can watch the canvas update without having to ask.
+- Do not log in as a different user, search for tokens, or bypass auth.
 - After inserting the image, refresh or wait for collab sync only if the image is not visible.
 - If the browser and MCP snapshot disagree, trust MCP for saved state but inspect browser sync before retrying.
 

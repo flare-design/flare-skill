@@ -2,7 +2,7 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.8"
+  version: "0.1.10"
 ---
 
 # Flare
@@ -32,7 +32,7 @@ Read only the references needed for the current request:
 
 ## Operating Loop
 
-1. Identify the environment and project. If the user is already on a Flare project URL, use that project id. Otherwise list or ask for the target project.
+1. Identify the environment and project. If the user is already on a Flare project URL, use that project id. If the user gave a project URL or id, use it. If the target is unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those recent projects in the conversation, and wait for the user to choose before editing. Do not guess the project.
 2. Confirm Flare MCP is connected. Use tool discovery when available; if the Flare MCP server is missing, follow `references/mcp-setup.md`.
 3. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
 4. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.

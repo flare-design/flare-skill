@@ -6,7 +6,7 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 
 1. Use the available client-side image generation or retrieval capability to create or obtain the bitmap.
 2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
-3. Identify `projectId` from the project URL or MCP project list.
+3. Identify `projectId` from the project URL, an explicit user-provided id, or a user-selected recent project. If unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those candidates, and wait for the user to choose.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
 5. Call `create_image_upload_session` with provenance, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. Use `sourceClient` for the calling agent/client (`codex`, `claude`, `chatgpt`, `cursor`), `generationPrompt` for the prompt, `generationModel` for the actual image model, and `generationTool` for the generation surface when known. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
 6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
@@ -42,7 +42,7 @@ Example insertion arguments after binary upload:
 
 Use this when the user has annotated an image in Flare and asks the agent to revise it from those notes.
 
-1. Identify `projectId` from the project URL or MCP project list.
+1. Identify `projectId` from the project URL, an explicit user-provided id, or a user-selected recent project. If unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those candidates, and wait for the user to choose.
 2. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` when the user specifies a target; otherwise let the tool use the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
 3. Use the returned target image URL, structured text/arrow annotations with 0..1 normalized target points, `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction.
 4. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
@@ -97,7 +97,7 @@ After saving, insert separately only if the user asked for placement.
 
 Use this when the user provides an HTML snippet/document or asks the agent to create HTML and place it in Flare as editable canvas material.
 
-1. Identify `projectId` from the project URL or MCP project list.
+1. Identify `projectId` from the project URL, an explicit user-provided id, or a user-selected recent project. If unclear, call `list_projects` with `limit: 5` and `status: "active"`, show those candidates, and wait for the user to choose.
 2. Read `get_live_canvas_context` when placement should follow the current viewport or selection.
 3. Call `insert_html` with `projectId`, the HTML string, and optional `frameName`, `x/y`, `width/height`, `anchorNodeId`, or `placement`.
 4. Treat the result as one root frame. Text, simple boxes, and public HTTPS images become editable child layers inside that frame.
