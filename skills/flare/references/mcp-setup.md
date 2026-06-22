@@ -17,16 +17,18 @@ Request only the scopes needed for the task:
 - Project read: `projects:read`
 - Canvas read/write: `canvas:read`, `canvas:write`
 - Asset read/write: `assets:read`, `assets:write`
-- Generation jobs: `generation:create`, plus read scope if the server exposes one
-- Render jobs: render/create and read scopes if the server exposes them
+- Generation jobs: `generation:read`, `generation:create`
+- Render jobs: `render:read`, `render:create`
 
-For normal canvas generation workflows, the practical full set is:
+For normal agent-side canvas workflows, the recommended set is:
 
 ```text
-projects:read canvas:read canvas:write assets:read assets:write generation:create
+projects:read canvas:read canvas:write assets:read assets:write
 ```
 
-Add render scopes only for render/export tasks.
+On the Flare authorization page, these agent-recommended scopes should be selected by default. Generation and rendering scopes should remain unselected by default because `generation:create` and `render:create` can consume Flares, render allowance, or plan usage.
+
+Request generation scopes only when the user explicitly asks to use Flare backend generation or to inspect Flare generation jobs. Request render scopes only for render/export tasks.
 
 ## Connection Check
 
