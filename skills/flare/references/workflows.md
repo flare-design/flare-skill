@@ -15,12 +15,11 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 
 Plain image/photo/illustration requests should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
 
-Example agent-side requests:
+Typical agent-side request patterns in any language:
 
-- `/flare 生成一张照片`
-- `Codex 内生图`
-- `不要调用画布生图`
-- `用你自己的生图能力`
+- Generate/create an image, photo, or illustration and place it in Flare.
+- Use Codex, Claude, or the current agent's own image generation.
+- Do not use Flare, canvas, or backend generation.
 
 This path records the asset as generated media that entered Flare through MCP binary upload. It is not an ordinary user upload and it should not create a Flare backend generation job record.
 
@@ -70,12 +69,11 @@ Use this only when the user explicitly wants to test or use Flare's own generati
 5. If the output is not automatically present in Assets/canvas, import a public output URL with `insert_generated_image`, or save output bytes to a local file, create an upload session, binary-upload them, then `insert_asset_image`.
 6. Verify the asset, canvas node, and job status.
 
-Do not use this workflow for plain agent-side image requests. Use the agent-generated image workflow instead for prompts such as:
+Do not use this workflow for plain agent-side image requests. Use the agent-generated image workflow instead for intent patterns such as:
 
-- `生成图片`
-- `Codex 内生图`
-- `Claude 自己生成`
-- `不要调用画布生图`
+- Generate/create an image, photo, or illustration.
+- Use Codex, Claude, or the current agent's own image generation.
+- Do not use Flare, canvas, or backend generation.
 
 ## Existing Asset To Canvas
 

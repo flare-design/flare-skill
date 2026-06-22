@@ -2,18 +2,18 @@
 
 Use this reference only when the agent is running inside Codex and the user wants Flare canvas work with visible live feedback.
 
-## Codex Image Generation To Flare Canvas
+## Codex Image Generation to Flare Canvas
 
 Use this workflow when the user wants Codex to generate the image itself and place it in Flare.
 
-Common Chinese triggers:
+Typical intent patterns in any language:
 
-- `/flare 生成一张照片`
-- `/flare 生成图片放到画布`
-- `用你自己的生图能力`
+- The user asks Codex or the current agent to create an image, photo, or illustration and place it in Flare.
+- The user asks to use the agent/client's own image generation capability.
+- The user asks not to use Flare, canvas, or backend generation.
 
 1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before editing.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.13"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.14"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Load and follow the installed `$imagegen` skill when available.
 4. Generate the image with Codex's image generation path, not Flare's `create_generation_job`.
 5. Keep the generated bitmap as a local file. Inspect its dimensions and MIME type if available. Do not convert local files to base64 for MCP arguments. If the generation API returns a data URL or base64 string, decode and write it to a local image file before any Flare MCP call.
@@ -34,10 +34,10 @@ Do not use the Flare app UI upload flow as a fallback for agent-generated images
 
 ## Codex Annotated Image Revision
 
-Use this workflow when the user says to revise an image from Flare canvas annotations, such as `按照批注改图`.
+Use this workflow when the user asks to revise an image from Flare canvas annotations, regardless of language.
 
 1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before reading annotation context.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.13"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.14"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
 4. Treat `target.src` and `annotations` as the edit contract. Use `annotatedImage` as a visual reference, not as the only source of truth. Do not infer coordinates from a browser screenshot when the structured annotations are available.
 5. Interpret annotations precisely:

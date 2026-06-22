@@ -89,4 +89,4 @@ Video-only fields:
 
 ## Routing Reminder
 
-Do not call `create_generation_job` for plain agent-side image requests. For example, `Codex 生成图片放到画布` should use agent image generation plus upload session plus `insert_asset_image`.
+Do not call `create_generation_job` for plain agent-side image requests in any language. When the user wants Codex, Claude, or the current agent to generate an image and place it in Flare, use agent image generation plus upload session plus `insert_asset_image`.
