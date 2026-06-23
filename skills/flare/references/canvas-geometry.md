@@ -41,6 +41,8 @@ Use `anchorNodeId` and `placement` for relative layout:
 
 Use explicit `x/y/width/height` when the user gives exact geometry or when validating a known target.
 
+When exact user coordinates are not required, keep inserted media inside the current/default visible viewport. If smart placement creates a node but the browser does not show it, inspect the snapshot coordinates and move that existing node into view instead of duplicating the asset.
+
 ## Live Collaboration
 
 Before writing to a live project:

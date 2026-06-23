@@ -4,14 +4,14 @@
 
 Use this when the user wants Claude, Codex, or another agent/client to generate or obtain an image and place it in Flare.
 
-1. Use the available client-side image generation or retrieval capability to create or obtain the bitmap.
+1. Use the available client-side image generation or retrieval capability to create or obtain a fresh bitmap. Do not skip generation by reusing an existing Flare asset just because it has a similar prompt, name, or visual content. Reuse an existing asset only when the user explicitly asks for reuse/import, or when recovering from a partially successful upload of the exact file generated in this operation.
 2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
 3. Identify `projectId` from the project URL, an explicit user-provided id, or the project selected through the Project Selection Pattern in `SKILL.md`.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
 5. Call `create_image_upload_session` with provenance, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. Use `sourceClient` for the calling agent/client (`codex`, `claude`, `chatgpt`, `cursor`), `generationPrompt` for the prompt, `generationModel` for the actual image model, and `generationTool` for the generation surface when known. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
-6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL.
+6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL. If the user did not give exact coordinates, choose smart placement or explicit coordinates that land in the current/default visible viewport.
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
-8. Verify with `get_canvas_snapshot` and, if visible, the browser.
+8. Verify with `get_canvas_snapshot` and, if visible, the browser. If the asset node exists but is offscreen, update that node's placement instead of generating or uploading a duplicate.
 
 Plain image/photo/illustration requests should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
 
@@ -22,6 +22,8 @@ Typical agent-side request patterns in any language:
 - Do not use Flare, canvas, or backend generation.
 
 This path records the asset as generated media that entered Flare through MCP binary upload. It is not an ordinary user upload and it should not create a Flare backend generation job record.
+
+Matching existing Assets are not a substitute for generation. For plain generate/create wording, produce a new image first, then save and insert that new result.
 
 Example insertion arguments after binary upload:
 
@@ -49,7 +51,7 @@ Use this when the user has annotated an image in Flare and asks the agent to rev
    - `rect.bounds` and `ellipse.bounds` are target-image regions.
    - `text.x/y` is a target-image text anchor.
    - `arrow.from` and `labelPosition` are layout hints for the composite and may sit outside the image.
-5. Use the target image URL, structured annotation intent, optional `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction.
+5. Use the target image URL, structured annotation intent, optional `annotatedImage` composite preview, and asset provenance to produce a revised prompt or image-edit instruction. State that this is a local edit: only change the annotated points, regions, or text requests; preserve unannotated composition, subject identity, background, lighting, camera angle, color palette, and style unless the user explicitly asks for a global redesign.
 6. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
 7. Keep the revised output as a local file. If the generation result is a data URL or base64 string, decode it to a local image file first.
 8. Call `create_image_upload_session` with provenance. Include the original prompt if known and mention the annotation session id in `generationNotes` when useful.
@@ -108,7 +110,7 @@ Use this when the user provides an HTML snippet/document or asks the agent to cr
 5. Do not pass data URLs, base64 image payloads, or local image paths inside the HTML expecting MCP to upload them. Save those images to local files and use the binary asset upload workflow first.
 6. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
-`insert_html` is a structured import, not a high-fidelity browser render. Do not launch Playwright or make a screenshot unless the user explicitly asks for pixel-perfect browser output. For pixel-perfect output, render externally to an image, upload that image as an asset, then place it with `insert_asset_image`.
+`insert_html` is a structured import, not a high-fidelity browser render. A browser screenshot can be useful as a QA check when the agent generated nontrivial HTML, but do not use a screenshot as the import path unless the user explicitly asks for pixel-perfect browser output. For pixel-perfect output, render externally to an image, upload that image as an asset, then place it with `insert_asset_image`.
 
 ## Motion Design For A Selected Board
 
