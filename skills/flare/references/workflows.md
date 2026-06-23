@@ -9,7 +9,7 @@ Use this when the user wants Claude, Codex, or another agent/client to generate 
 3. Identify `projectId` from the project URL, an explicit user-provided id, or the project selected through the Project Selection Pattern in `SKILL.md`.
 4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
 5. Call `create_image_upload_session` with provenance, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. Use `sourceClient` for the calling agent/client (`codex`, `claude`, `chatgpt`, `cursor`), `generationPrompt` for the prompt, `generationModel` for the actual image model, and `generationTool` for the generation surface when known. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
-6. Call `insert_asset_image` with the returned `assetId`. Use public URL import only when the image is already hosted at a public HTTPS URL. If the user did not give exact coordinates, choose smart placement or explicit coordinates that land in the current/default visible viewport.
+6. Call `insert_asset_image` with the returned `assetId`. Omit `width` and `height` by default so Flare preserves the generated bitmap's original dimensions. Use public URL import only when the image is already hosted at a public HTTPS URL. If the user did not give exact coordinates, choose smart placement or explicit coordinates that land in the current/default visible viewport without shrinking the image.
 7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
 8. Verify with `get_canvas_snapshot` and, if visible, the browser. If the asset node exists but is offscreen, update that node's placement instead of generating or uploading a duplicate.
 
@@ -33,9 +33,7 @@ Example insertion arguments after binary upload:
   "assetId": "asset-id-returned-by-upload",
   "name": "Agent glass cube",
   "x": 0,
-  "y": 0,
-  "width": 512,
-  "height": 512
+  "y": 0
 }
 ```
 
@@ -55,7 +53,7 @@ Use this when the user has annotated an image in Flare and asks the agent to rev
 6. Generate the revised bitmap with the agent/client image capability. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
 7. Keep the revised output as a local file. If the generation result is a data URL or base64 string, decode it to a local image file first.
 8. Call `create_image_upload_session` with provenance. Include the original prompt if known and mention the annotation session id in `generationNotes` when useful.
-9. Binary-upload raw file bytes, then call `insert_asset_image` with the returned `assetId`. Use the `suggestedPlacement` fields from `get_image_annotation_context` so the new image appears beside the original.
+9. Binary-upload raw file bytes, then call `insert_asset_image` with the returned `assetId`. Use the `suggestedPlacement` fields from `get_image_annotation_context` so the new image appears beside the original, but do not invent a smaller display size unless the user asked for resizing.
 10. Verify with `get_canvas_snapshot` and, if visible, the browser.
 
 This workflow reads annotation context only. It does not use Flare's platform annotation generation or backend generation pipeline.
@@ -81,7 +79,7 @@ Do not use this workflow for plain agent-side image requests. Use the agent-gene
 
 1. Use `list_assets` to find the target asset, filtering by kind or source type when useful.
 2. Call `insert_asset_image` or `insert_asset_video`.
-3. Use `x/y/width/height` for exact placement, or `anchorNodeId + placement` for relative placement.
+3. Use `x/y` for exact placement, and add `width/height` only when the user explicitly asks for a display size. Use `anchorNodeId + placement` for relative placement.
 4. Verify node creation.
 
 ## Save Media To Assets
