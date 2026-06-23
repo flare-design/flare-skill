@@ -2,13 +2,11 @@
 
 ## Environments
 
-Use the user's current Flare environment unless they specify otherwise.
+Use the production Flare environment unless the user explicitly provides a different endpoint.
 
-- Staging app: `https://app.staging.flare.design`
-- Staging MCP: `https://mcp.staging.flare.design/mcp`
-- Production MCP, when configured: `https://mcp.flare.design/mcp`
-
-If the user is testing staging, connect the staging MCP endpoint. Mixing production MCP with a staging project URL will usually fail or operate on the wrong account/project.
+- App: `https://app.flare.design`
+- MCP: `https://mcp.flare.design/mcp`
+- Auth: `https://auth.flare.design`
 
 ## Required Scopes
 

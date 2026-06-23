@@ -54,7 +54,7 @@ Use this workflow when the user asks to revise an image from Flare canvas annota
 ## Browser Behavior
 
 - Always open or focus the in-app browser before Flare canvas generation, insertion, annotation revision, motion, or other visible canvas edits in Codex desktop.
-- Prefer the current in-app browser tab when it already shows `app.flare.design` or `app.staging.flare.design`; otherwise navigate to the target project URL when it is known.
+- Prefer the current in-app browser tab when it already shows `app.flare.design`; otherwise navigate to the target project URL when it is known.
 - If no target project is clear, call `list_projects` with `limit: 5` and `status: "active"`, present the recent project names, ids, and updated times, then wait for the user to pick one. Do not infer the project from the first result.
 - If Flare is not logged in, ask the user to log in in the in-app browser and wait. Continue only after the browser session is authenticated.
 - Keep the in-app browser visible through verification so the user can watch the canvas update without having to ask.
