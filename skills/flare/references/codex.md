@@ -12,8 +12,8 @@ Typical intent patterns in any language:
 - The user asks to use the agent/client's own image generation capability.
 - The user asks not to use Flare, canvas, or backend generation.
 
-1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before editing.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.14"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.15"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Load and follow the installed `$imagegen` skill when available.
 4. Generate the image with Codex's image generation path, not Flare's `create_generation_job`.
 5. Keep the generated bitmap as a local file. Inspect its dimensions and MIME type if available. Do not convert local files to base64 for MCP arguments. If the generation API returns a data URL or base64 string, decode and write it to a local image file before any Flare MCP call.
@@ -36,8 +36,8 @@ Do not use the Flare app UI upload flow as a fallback for agent-generated images
 
 Use this workflow when the user asks to revise an image from Flare canvas annotations, regardless of language.
 
-1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, call `list_projects` with `limit: 5` and `status: "active"`, show the recent project candidates, and wait for the user to choose before reading annotation context.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.14"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. Prefer the current Flare tab. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.15"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
 4. Treat `target.src` and `annotations` as the edit contract. Use `annotatedImage` as a visual reference, not as the only source of truth. Do not infer coordinates from a browser screenshot when the structured annotations are available.
 5. Interpret annotations precisely:
@@ -55,12 +55,20 @@ Use this workflow when the user asks to revise an image from Flare canvas annota
 
 - Always open or focus the in-app browser before Flare canvas generation, insertion, annotation revision, motion, or other visible canvas edits in Codex desktop.
 - Prefer the current in-app browser tab when it already shows `app.flare.design`; otherwise navigate to the target project URL when it is known.
-- If no target project is clear, call `list_projects` with `limit: 5` and `status: "active"`, present the recent project names, ids, and updated times, then wait for the user to pick one. Do not infer the project from the first result.
+- If no target project is clear, use the Project Selection Behavior below.
 - If Flare is not logged in, ask the user to log in in the in-app browser and wait. Continue only after the browser session is authenticated.
 - Keep the in-app browser visible through verification so the user can watch the canvas update without having to ask.
 - Do not log in as a different user, search for tokens, or bypass auth.
 - After inserting the image, refresh or wait for collab sync only if the image is not visible.
 - If the browser and MCP snapshot disagree, trust MCP for saved state but inspect browser sync before retrying.
+
+## Project Selection Behavior
+
+- Call `list_projects` with `limit: 5` and `status: "active"`.
+- If the response includes `selectionHint`, follow it. If Codex exposes interactive choices in the current surface, use those choices. Otherwise render the projects as a numbered text list.
+- If one active project is returned, state that Codex will use it by default and continue unless the user explicitly asked to choose or the context conflicts.
+- If multiple active projects are returned, wait for the user to pick by number, name, or project id. Do not choose the first project automatically.
+- If no active project is returned, ask the user to open or create a Flare project.
 
 ## Forbidden Path
 
