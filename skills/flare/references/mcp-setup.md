@@ -45,7 +45,7 @@ When `check_client_setup` is exposed, call it once before the first visible canv
 {
   "client": "codex",
   "skillName": "flare",
-  "installedSkillVersion": "0.1.18"
+  "installedSkillVersion": "0.1.19"
 }
 ```
 
@@ -60,7 +60,7 @@ Use the actual client name when known, such as `codex`, `claude-code`, `chatgpt`
 The Flare MCP server should expose tools for:
 
 - Client setup: `check_client_setup`
-- Projects: `list_projects`, `get_project`
+- Projects: `list_projects`, `create_project`, `get_project`
 - Assets: `list_assets`, `create_image_upload_session`, `get_image_upload_endpoint`, `save_image_asset_from_url`
 - Generated image insertion: `insert_agent_generated_image`, `insert_codex_generated_image`, `insert_generated_image`. Prefer `insert_agent_generated_image`; `insert_codex_generated_image` is a compatibility alias for older clients and servers.
 - Canvas reads: `get_canvas_snapshot`, `get_live_canvas_context`, `get_image_annotation_context`, `export_project_snapshot`
