@@ -45,7 +45,7 @@ When `check_client_setup` is exposed, call it once before the first visible canv
 {
   "client": "codex",
   "skillName": "flare",
-  "installedSkillVersion": "0.1.23"
+  "installedSkillVersion": "0.1.24"
 }
 ```
 
@@ -75,7 +75,7 @@ If a tool is missing, adapt to the available list and report the missing capabil
 
 For local image files, use the MCP/client binary upload path rather than JSON base64.
 
-- Preferred tool: `create_image_upload_session`
+- Preferred tool: `create_image_upload_session`; pass `autoInsert` when the upload should immediately place the image on a canvas.
 - Fallback/legacy tool: `get_image_upload_endpoint`; use its returned `uploadToken` when `create_image_upload_session` is not exposed in the current client's cached tool list.
 - Upload URL: use the exact `uploadUrl` returned by the tool; on current hosted environments this is the MCP resource URL (`/mcp`) with an image `Content-Type`.
 - Method: `POST`
@@ -87,4 +87,4 @@ Do not look for or expose the MCP OAuth access token in shell commands. The `upl
 
 For data URLs or base64 image data, write the bytes to a local image file first, then use the same upload-session flow.
 
-After upload, use the returned `assetId` with `insert_asset_image`.
+After upload, stop when the response confirms `autoInsert`. Use the returned `assetId` with `insert_asset_image` only when autoInsert was not requested, unavailable, or failed.

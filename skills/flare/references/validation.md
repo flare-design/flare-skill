@@ -2,7 +2,7 @@
 
 ## General Verification
 
-After every write, verify through at least one authoritative source:
+After every write, verify through at least one authoritative source, except plain image Fast Path and annotation-revision autoInsert flows that explicitly stop after a successful upload response:
 
 - Canvas node created/updated/deleted: `get_canvas_snapshot`
 - Live selection or collaborator state: `get_live_canvas_context`
@@ -25,16 +25,20 @@ For agent-generated image insertion:
 - Local generated image data was binary-uploaded into Assets before canvas insertion.
 - Asset was saved with generation/source provenance where supported.
 - Canvas image node exists.
+- Fast Path uses `autoInsert` when available and stops after the upload response confirms insertion.
 - Image is a root layer unless user explicitly requested `parentId`.
 - `x/y` are center scene coordinates.
 - The inserted image is inside the current/default visible viewport unless the user requested exact offscreen coordinates.
-- The browser shows the image after refresh or collab sync.
+- Browser refresh/collab-sync checks are only for recovery, not the default Fast Path.
 
 For annotated image revisions:
 
+- A fresh revised bitmap was generated with the agent/client image generation or image-edit capability.
+- The revision was not faked with canvas shapes/text, ordinary layer edits, existing asset reuse, or deterministic local image-processing scripts.
 - The generation/edit prompt explicitly says to change only the annotated points, regions, or text requests.
 - Unannotated composition, subject identity, background, lighting, camera angle, color palette, and style are preserved unless the user explicitly requested a global redesign.
-- The revised image is placed beside the original using `suggestedPlacement`.
+- The revised image is placed beside the original using `suggestedAutoInsert` or fallback `suggestedPlacement`.
+- The annotation-revision path stops after the upload response confirms `autoInsert` unless recovery or explicit verification is needed.
 
 ## Motion Checklist
 
