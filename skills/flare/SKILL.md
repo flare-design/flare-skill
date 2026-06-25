@@ -2,14 +2,14 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.22"
+  version: "0.1.23"
 ---
 
 # Flare
 
 ## Overview
 
-Use this skill as the operating guide for Flare from any capable AI agent or MCP client. Route user intent to the correct Flare MCP tool, preserve live canvas state, and verify changes in the project after each meaningful edit.
+Use this skill as the operating guide for Flare from any capable AI agent or MCP client. Route user intent to the correct Flare MCP tool, preserve live canvas state, and verify complex changes in the project after meaningful edits. Plain agent-side image generation uses the Fast Path below and ends after successful insertion unless the user asks for verification or recovery is needed.
 
 Flare MCP is the source of truth for project, canvas, asset, generation, motion, and render operations. Agent-side media generation is a separate capability: when an agent or another MCP client has already generated or obtained an image, upload the local file through Flare's MCP upload-session flow and insert the resulting asset instead of starting a Flare generation job.
 
@@ -34,12 +34,23 @@ Read only the references needed for the current request:
 
 1. Resolve the target environment, MCP project id, and browser project URL before visible edits. Prefer MCP-returned `projectId` for tool calls and `projectUrl` for browser navigation. MCP responses may also include `projectRouteId`, the prefix-free browser route id. If the target is unclear, follow the Project Selection Pattern below before opening a browser tab or editing.
 2. Confirm Flare MCP is connected. Use tool discovery when available; if the Flare MCP server is missing, follow `references/mcp-setup.md`.
-3. Before the first visible canvas write in a conversation, call `check_client_setup` when the tool is exposed. Pass `skillName: "flare"` and `installedSkillVersion: "0.1.22"`; include the client name when known. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention the returned `updateCommand` once and continue when the current workflow is still compatible.
-4. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
+3. Before the first visible canvas write in a conversation, call `check_client_setup` when the tool is exposed. Pass `skillName: "flare"` and `installedSkillVersion: "0.1.23"`; include the client name when known. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention the returned `updateCommand` once and continue when the current workflow is still compatible.
+4. Read state before writing except on the plain image Fast Path. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
 5. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.
 6. Choose the highest-level safe tool. Prefer specialized tools like `get_image_annotation_context` for annotated image revision, `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
 7. Apply the change with center-origin scene coordinates. Avoid unintended parenting.
-8. Verify with a snapshot, job status, asset list, or browser view. Report concrete ids and any remaining uncertainty.
+8. Verify with a snapshot, job status, asset list, or browser view except on the plain image Fast Path. Report concrete ids and any remaining uncertainty.
+
+## Plain Image Fast Path
+
+Use this path for ordinary requests to generate/create a photo, image, picture, or illustration and place it on a Flare canvas, when the user did not explicitly ask to use Flare backend generation, replace an existing layer, revise annotations, or inspect results.
+
+1. Start the agent/client image generation immediately.
+2. In parallel with image generation, resolve the target project and open/focus its `projectUrl` directly in the browser when browser control is available. Use `check_client_setup` and Project Selection Pattern only as needed for setup or target resolution.
+3. Do not read canvas snapshots, list/search existing assets, inspect similar layers, or check whether a matching image already exists.
+4. When the image file is ready, create an upload session, binary-upload the local file, and call `insert_asset_image` with the returned `assetId`.
+5. Do not pass `width` or `height` unless the user explicitly asked for resizing, fitting, filling, or cropping.
+6. End after `insert_asset_image` succeeds. Do not call `get_canvas_snapshot`, refresh the browser, center the viewport, or visually verify. Enter recovery only if an MCP call fails, auth is missing, the user asks to verify, or the user says the result is not visible.
 
 ## Project Selection Pattern
 
@@ -62,7 +73,7 @@ Use this only when the user has not provided a project URL/id and no Flare proje
 
 ## Core Routing Rules
 
-- **Plain "generate an image/photo" requests default to agent-side generation**: if the user asks to generate a picture/photo/illustration for Flare and does not explicitly say to use Flare backend generation, use the agent/client image generation capability first. Do not satisfy a generation request by reusing an existing Flare asset just because the prompt, name, or visual content looks similar. Existing assets may be reused only when the user explicitly asks to reuse/import an existing asset, or when recovering from a partially successful upload of the exact file generated in the current operation. If the result is a local file, call `create_image_upload_session` with provenance (`sourceClient`, `generationPrompt`, `generationModel`, `generationTool` when known), binary-upload it to Assets with the returned upload token, then insert it with `insert_asset_image`. If the current client only exposes `get_image_upload_endpoint`, use its returned `uploadToken`.
+- **Plain "generate an image/photo" requests default to the Fast Path**: if the user asks to generate a picture/photo/illustration for Flare and does not explicitly say to use Flare backend generation, start agent/client image generation first and resolve/open the Flare project in parallel. Do not satisfy a generation request by reusing an existing Flare asset just because the prompt, name, or visual content looks similar. Do not search existing assets or inspect existing canvas images for ordinary generation. Existing assets may be reused only when the user explicitly asks to reuse/import an existing asset, or when recovering from a partially successful upload of the exact file generated in the current operation. If the result is a local file, call `create_image_upload_session` with provenance (`sourceClient`, `generationPrompt`, `generationModel`, `generationTool` when known), binary-upload it to Assets with the returned upload token, then insert it with `insert_asset_image` and stop. If the current client only exposes `get_image_upload_endpoint`, use its returned `uploadToken`.
 - **The agent generated or obtained an image**: prefer a local file or public HTTPS URL. For local files, create an MCP upload session or use the generic upload token returned by `get_image_upload_endpoint`, upload raw bytes, and then `insert_asset_image`; do not put base64 or data URLs in MCP JSON. If the image currently exists as a data URL or base64 string, save it to a local image file first, then upload that file. Use `insert_agent_generated_image` only for public URLs. Do not call `create_generation_job`. Treat these assets as generated media entering Flare through MCP binary upload, not ordinary user uploads. When no exact `x/y` is required, omit `width` and `height` so Flare preserves the original image dimensions, and use smart placement or explicit visible coordinates so the inserted layer appears in the current/default viewport.
 - **Revise an image from Flare annotations**: call `get_image_annotation_context` first. Treat `annotations` as the source of truth, `target.src` as the original image, and `annotatedImage` as visual reference only. Use arrow `to`, rect/ellipse `bounds`, and text `x/y` as 0..1 normalized target-image coordinates; use arrow `from` and `labelPosition` only as layout/context hints. By default this is a local edit workflow: revise only the annotated points or regions and preserve unannotated composition, subject identity, background, lighting, camera angle, color palette, and style unless the user explicitly asks for a global redesign. Generate the revised image with the agent/client image capability, upload the local file with `create_image_upload_session`, then call `insert_asset_image` next to the original using `suggestedPlacement`. Do not call `create_generation_job` unless the user explicitly asks for Flare backend generation.
 - **Flare should generate media**: call `create_generation_job`, then poll `get_generation_job` or inspect `list_generation_jobs`, only when the user explicitly asks for Flare/canvas/backend generation or is testing that queue.
@@ -96,9 +107,9 @@ When creating HTML for `insert_html`, optimize for an editable Flare frame, not 
 - Insert generated images as root canvas layers by default, not inside the selected frame/artboard.
 - Pass `parentId` only when the user explicitly asks to place the layer inside a frame, group, or artboard.
 - Use `anchorNodeId` and `placement` for relative positioning; do not assume this implies hierarchy.
-- When inserting generated media without explicit user coordinates, keep it visible in the current/default viewport. If a snapshot confirms creation but the browser does not show the node, move the existing node into view with an update operation instead of regenerating or re-uploading.
+- When inserting generated media without explicit user coordinates, keep it visible in the current/default viewport. On the Fast Path, do not verify this after insertion; if the user later says it is not visible, move the existing node into view with an update operation instead of regenerating or re-uploading.
 - Do not pass `width` or `height` to `insert_asset_image` for a newly generated local image unless the user explicitly asks to resize it or to fit/fill a selected target. Omitting both dimensions preserves the original generated bitmap size.
-- Preserve collaborator state and existing content. Read before editing and verify after writing.
+- Preserve collaborator state and existing content. Read before editing and verify after writing except on the plain image Fast Path.
 
 ## Quality Bar
 

@@ -4,14 +4,13 @@
 
 Use this when the user wants Claude, Codex, or another agent/client to generate or obtain an image and place it in Flare.
 
-1. Use the available client-side image generation or retrieval capability to create or obtain a fresh bitmap. Do not skip generation by reusing an existing Flare asset just because it has a similar prompt, name, or visual content. Reuse an existing asset only when the user explicitly asks for reuse/import, or when recovering from a partially successful upload of the exact file generated in this operation.
-2. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
-3. Identify the MCP `projectId` from an explicit id, the selected project, or the browser URL. Prefer a canonical `projectId` returned by MCP. If you only have a `/projects/{routeId}` browser route, pass that prefix-free route id as the MCP `projectId`; current MCP servers normalize it internally. When operating in a browser-capable client, resolve the direct `projectUrl` before opening or changing browser tabs, then open that exact URL before visible edits; do not navigate through the app root or project list page. Browser URLs use `projectRouteId`, which omits one leading `proj_` prefix.
-4. Read `get_live_canvas_context` when placement should respect current viewport or selection.
+1. Start the available client-side image generation or retrieval capability immediately to create or obtain a fresh bitmap.
+2. In parallel with image generation, identify the MCP `projectId` from an explicit id, the selected project, or the browser URL. Prefer a canonical `projectId` returned by MCP. If you only have a `/projects/{routeId}` browser route, pass that prefix-free route id as the MCP `projectId`; current MCP servers normalize it internally. When operating in a browser-capable client, resolve the direct `projectUrl` and open that exact URL before insertion when possible; do not navigate through the app root or project list page. Browser URLs use `projectRouteId`, which omits one leading `proj_` prefix.
+3. Do not list/search existing Flare assets, inspect similar canvas layers, or read snapshots/live context for ordinary generation. Reuse an existing asset only when the user explicitly asks for reuse/import, or when recovering from a partially successful upload of the exact file generated in this operation.
+4. Keep or convert the result into a local image file. If the client produced a data URL or base64 string, decode it and write it to disk before touching Flare MCP.
 5. Call `create_image_upload_session` with provenance, then binary-upload the local file into Assets with the returned `uploadUrl` and `uploadToken`. Use `sourceClient` for the calling agent/client (`codex`, `claude`, `chatgpt`, `cursor`), `generationPrompt` for the prompt, `generationModel` for the actual image model, and `generationTool` for the generation surface when known. If that tool is not exposed in the current client's cached tool list, call `get_image_upload_endpoint` and use its returned generic `uploadToken`. The upload response returns `assetId` and an `asset` object.
-6. Call `insert_asset_image` with the returned `assetId`. Omit `width` and `height` by default so Flare preserves the generated bitmap's original dimensions. Use public URL import only when the image is already hosted at a public HTTPS URL. If the user did not give exact coordinates, choose smart placement or explicit coordinates that land in the current/default visible viewport without shrinking the image.
-7. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
-8. Verify with `get_canvas_snapshot` and, if visible, the browser. If the asset node exists but is offscreen, update that node's placement instead of generating or uploading a duplicate.
+6. Call `insert_asset_image` with the returned `assetId`. Omit `width` and `height` by default so Flare preserves the generated bitmap's original dimensions. Use public URL import only when the image is already hosted at a public HTTPS URL. Default to root canvas layer. Use `anchorNodeId` for placement, not `parentId`, unless explicit.
+7. End after `insert_asset_image` succeeds. Do not call `get_canvas_snapshot`, refresh the browser, center the viewport, or visually verify unless the user explicitly asks, an MCP call failed, auth is missing, or the user says the result is not visible.
 
 Plain image/photo/illustration requests should use this workflow by default. Do not switch to Flare backend generation unless the user explicitly asks for the Flare/canvas generation backend.
 
@@ -23,7 +22,7 @@ Typical agent-side request patterns in any language:
 
 This path records the asset as generated media that entered Flare through MCP binary upload. It is not an ordinary user upload and it should not create a Flare backend generation job record.
 
-Matching existing Assets are not a substitute for generation. For plain generate/create wording, produce a new image first, then save and insert that new result.
+Matching existing Assets are not a substitute for generation, and they should not be searched on the fast path. For plain generate/create wording, produce a new image first, then save and insert that new result.
 
 Example insertion arguments after binary upload:
 
