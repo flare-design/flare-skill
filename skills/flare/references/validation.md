@@ -20,6 +20,7 @@ For agent-generated image insertion:
 - No `create_generation_job` was called.
 - The agent/client image generation path was used for plain image/photo/illustration wording in any language.
 - A fresh bitmap was generated for the request; no existing Flare asset was reused as a substitute unless the user explicitly asked for reuse/import or the operation was recovering the exact file generated in the current attempt.
+- The upload used the exact local file path returned by the generation/edit tool, without shell-searching generated folders or copying into the workspace first.
 - No image file was passed as base64 or data URL in MCP JSON.
 - Local file upload used `create_image_upload_session`, fallback `get_image_upload_endpoint`, or a client upload helper, not a searched/exposed MCP OAuth token.
 - Local generated image data was binary-uploaded into Assets before canvas insertion.
@@ -69,6 +70,8 @@ Avoid repeated generation jobs when the failure is actually insertion, asset ind
 - Reusing an old matching asset instead of generating a new bitmap for a plain generation request.
 - Passing image files as `dataUrl` or `dataBase64` instead of writing a local file and binary-uploading it.
 - Searching shell environment, config files, browser storage, or logs for MCP OAuth tokens.
+- Searching generated-image folders to find the newest file after the generation tool already returned a local path.
+- Copying a generated image into the workspace or a `flare-assets` folder before upload when the user did not ask for a local backup.
 - Falling back to Flare app UI upload when an agent-generated local file should use `create_image_upload_session` or `get_image_upload_endpoint`.
 - Treating a generic "generate/create" word in any language as Flare backend generation without explicit backend wording.
 - Passing `parentId` because a frame is selected, causing generated media to disappear inside or behind an artboard.

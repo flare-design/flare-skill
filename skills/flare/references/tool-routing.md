@@ -48,6 +48,7 @@ Before calling `create_generation_job`, call `list_generation_models` and use it
 For agent-generated images:
 
 - Prefer local-file `create_image_upload_session` with `autoInsert` plus binary upload; use `insert_asset_image` only when autoInsert is unavailable or failed. Use `get_image_upload_endpoint` as a fallback when the current client has stale tool metadata. Use `insert_agent_generated_image` only for public HTTPS `imageUrl` or `url`.
+- Use the exact path returned by the generation/edit tool. Do not shell-search for the newest generated file or copy it into a workspace assets folder before upload.
 - If an agent has image data as a data URL or base64 string, first save it to a local image file; do not pass it in MCP JSON.
 - Do not search for or expose MCP OAuth tokens. Use the short-lived `uploadToken` from `create_image_upload_session` for local file bytes.
 - Set `sourceClient` to the calling agent/client when known, such as `codex` or `claude`.
