@@ -2,7 +2,7 @@
 name: flare
 description: Operate Flare projects through MCP for AI agents and MCP clients, including project discovery, live canvas edits, asset library management, agent-provided generated media insertion, HTML-to-frame import, Flare backend AI generation jobs, motion design, audio/captions, and render jobs. Use when the user mentions Flare, flare.design, a Flare project URL, canvas/artboard/frame/layer edits, generating or adding images/photos to a Flare canvas, importing HTML into a canvas, saving media to Assets, designing motion for a selected board, or rendering/exporting a Flare project.
 metadata:
-  version: "0.1.20"
+  version: "0.1.21"
 ---
 
 # Flare
@@ -32,9 +32,9 @@ Read only the references needed for the current request:
 
 ## Operating Loop
 
-1. Resolve the target environment and project URL before visible edits. If the user is already on a Flare project URL, use that project id. If the user gave a project URL or id, use it and open the direct project URL before visible edits. If the target is unclear, follow the Project Selection Pattern below before opening a browser tab or editing.
+1. Resolve the target environment, MCP project id, and browser project URL before visible edits. MCP tool calls use the full project id such as `proj_3f62...`; browser editor URLs use the route id without the `proj_` prefix, such as `/projects/3f62...`. If the user gave a project URL or id, normalize it with this rule before editing. If the target is unclear, follow the Project Selection Pattern below before opening a browser tab or editing.
 2. Confirm Flare MCP is connected. Use tool discovery when available; if the Flare MCP server is missing, follow `references/mcp-setup.md`.
-3. Before the first visible canvas write in a conversation, call `check_client_setup` when the tool is exposed. Pass `skillName: "flare"` and `installedSkillVersion: "0.1.20"`; include the client name when known. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention the returned `updateCommand` once and continue when the current workflow is still compatible.
+3. Before the first visible canvas write in a conversation, call `check_client_setup` when the tool is exposed. Pass `skillName: "flare"` and `installedSkillVersion: "0.1.21"`; include the client name when known. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention the returned `updateCommand` once and continue when the current workflow is still compatible.
 4. Read state before writing. For canvas work, prefer `get_live_canvas_context` and `get_canvas_snapshot`; for broader context, use `export_project_snapshot`.
 5. Query dynamic capability tools before using option-heavy features: `list_generation_models`, `list_motion_presets`, `list_shader_presets`, `list_canvas_patch_operations`, `list_media_capabilities`, or `list_render_presets`.
 6. Choose the highest-level safe tool. Prefer specialized tools like `get_image_annotation_context` for annotated image revision, `create_image_upload_session` plus binary upload plus `insert_asset_image` for local agent-generated files, `insert_agent_generated_image` for public URLs, `insert_html` for HTML-to-frame imports, `insert_shader_layer`, `apply_motion_design`, or `create_render_job` before raw `apply_canvas_patch`.
@@ -50,6 +50,14 @@ Use this only when the user has not provided a project URL/id and no Flare proje
 3. If there are no active projects and `create_project` is available, call `create_project`, then open the returned `projectUrl` directly before editing. If `create_project` is unavailable or permission is missing, ask the user to create or open a project.
 4. If there is exactly one active project, use it by default and open its `projectUrl` directly before visible edits unless the user explicitly asked to choose or the surrounding context points to another project.
 5. If there are multiple active projects, do not infer the first result. Present up to five choices with name, id, updated time, and `projectUrl`, then wait for the user to reply with a number, name, or project id. After the user chooses, open that exact `projectUrl` directly.
+
+## Project Id And URL Mapping
+
+- MCP `projectId` values are canonical storage ids and normally include the `proj_` prefix.
+- Flare editor browser URLs intentionally omit that prefix: `proj_3f62a35f-...` opens at `https://app.flare.design/projects/3f62a35f-...`.
+- When an MCP response includes `projectUrl`, use it directly for browser navigation. It should already be the prefix-free editor route.
+- When deriving an MCP tool `projectId` from a browser `/projects/{routeId}` URL, add `proj_` unless the route id already starts with `proj_`.
+- When deriving a browser URL from an MCP `projectId`, remove one leading `proj_` prefix before building `/projects/{routeId}`.
 
 ## Core Routing Rules
 
