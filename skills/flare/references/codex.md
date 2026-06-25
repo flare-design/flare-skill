@@ -12,8 +12,8 @@ Typical intent patterns in any language:
 - The user asks to use the agent/client's own image generation capability.
 - The user asks not to use Flare, canvas, or backend generation.
 
-1. Open or focus the in-app browser before generating or inserting. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. If a project id or URL is known, navigate directly to `https://app.flare.design/projects/{projectId}` or the returned `projectUrl`; do not open the project list page and click into a project. Prefer an existing current Flare project tab only when it is already the target project. If browser-control tools are not available in the current Codex surface, say that explicitly before writing through MCP and verify with MCP snapshots instead. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.19"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+1. Resolve the target `projectUrl` before opening or changing the in-app browser. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. If a project id or URL is known, use `https://app.flare.design/projects/{projectId}` or the returned `projectUrl`. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below before browser navigation. Once `projectUrl` is known, open or focus the in-app browser at that exact URL. Prefer an existing current Flare project tab only when it is already the target project. Do not open `app.flare.design`, `/projects`, the project list page, or project cards as an intermediate step. If browser-control tools are not available in the current Codex surface, say that explicitly before writing through MCP and verify with MCP snapshots instead. If Flare is not logged in, ask the user to log in in that browser and wait before continuing.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.20"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Load and follow the installed `$imagegen` skill when available.
 4. Generate a fresh bitmap with Codex's image generation path, not Flare's `create_generation_job`. Do not skip generation and reuse an existing Flare asset just because a similar prompt, name, or image already exists. Reuse an existing asset only when the user explicitly asks for reuse/import, or when recovering from a partially successful upload of the exact file generated in this operation.
 5. Keep the generated bitmap as a local file. Inspect its dimensions and MIME type if available. Do not convert local files to base64 for MCP arguments. If the generation API returns a data URL or base64 string, decode and write it to a local image file before any Flare MCP call.
@@ -38,8 +38,8 @@ Do not use the Flare app UI upload flow as a fallback for agent-generated images
 
 Use this workflow when the user asks to revise an image from Flare canvas annotations, regardless of language.
 
-1. Open or focus the in-app browser before reading context. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. If a project id or URL is known, navigate directly to `https://app.flare.design/projects/{projectId}` or the returned `projectUrl`; do not open the project list page and click into a project. Prefer an existing current Flare project tab only when it is already the target project. If browser-control tools are not available in the current Codex surface, say that explicitly before writing through MCP and verify with MCP snapshots instead. If Flare is not logged in, ask the user to log in in that browser and wait before continuing. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below.
-2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.19"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
+1. Resolve the target `projectUrl` before opening or changing the in-app browser. In Codex desktop, assume the user wants to watch live canvas changes by default; do not wait for the user to explicitly ask. If a project id or URL is known, use `https://app.flare.design/projects/{projectId}` or the returned `projectUrl`. If no Flare project is open and no target URL or project id is known, use the Project Selection Behavior below before browser navigation. Once `projectUrl` is known, open or focus the in-app browser at that exact URL. Prefer an existing current Flare project tab only when it is already the target project. Do not open `app.flare.design`, `/projects`, the project list page, or project cards as an intermediate step. If browser-control tools are not available in the current Codex surface, say that explicitly before writing through MCP and verify with MCP snapshots instead. If Flare is not logged in, ask the user to log in in that browser and wait before continuing.
+2. Call `check_client_setup` when exposed with `client: "codex"`, `skillName: "flare"`, and `installedSkillVersion: "0.1.20"`. If `updateRequired` is true, ask the user to run the returned `updateCommand` before continuing. If only `updateAvailable` is true, mention it once and continue when safe.
 3. Call `get_image_annotation_context` with `projectId`. Pass `nodeId` or `annotationId` only when the user identified a specific image/session; otherwise let Flare resolve the active selection. The tool returns `annotatedImage` by default; set `includeAnnotatedImage: false` only when the client needs a smaller text-only response.
 4. Treat `target.src` and `annotations` as the edit contract. Use `annotatedImage` as a visual reference, not as the only source of truth. Do not infer coordinates from a browser screenshot when the structured annotations are available.
 5. Interpret annotations precisely:
@@ -55,11 +55,12 @@ Use this workflow when the user asks to revise an image from Flare canvas annota
 
 ## Browser Behavior
 
-- Always open or focus the in-app browser before Flare canvas generation, insertion, annotation revision, motion, or other visible canvas edits in Codex desktop.
+- After the target `projectUrl` is resolved, always open or focus the in-app browser before Flare canvas generation, insertion, annotation revision, motion, or other visible canvas edits in Codex desktop.
+- When the target project is not already known, resolve `projectUrl` through MCP first. Do not open any Flare browser page until the exact `projectUrl` is known or created.
 - If browser-control tools are unavailable, say that explicitly before writing through MCP instead of implying live browser verification happened.
 - Prefer the current in-app browser tab only when it already shows the target `app.flare.design/projects/{projectId}` page; otherwise navigate directly to the target project URL when it is known.
-- Never open `app.flare.design` or the projects list as a stepping stone when a target project URL/id is known.
-- If no target project is clear, use the Project Selection Behavior below.
+- Never open `app.flare.design`, `/projects`, or the projects list as a stepping stone. Use MCP project URLs instead of clicking project cards.
+- If no target project is clear, use the Project Selection Behavior below before opening the browser.
 - If Flare is not logged in, ask the user to log in in the in-app browser and wait. Continue only after the browser session is authenticated.
 - Keep the in-app browser visible through verification so the user can watch the canvas update without having to ask.
 - Do not log in as a different user, search for tokens, or bypass auth.
@@ -69,7 +70,7 @@ Use this workflow when the user asks to revise an image from Flare canvas annota
 
 ## Project Selection Behavior
 
-- Call `list_projects` with `limit: 5` and `status: "active"`.
+- Call `list_projects` with `limit: 5` and `status: "active"` before opening the browser.
 - If the response includes `selectionHint`, follow it. If Codex exposes interactive choices in the current surface, use those choices. Otherwise render the projects as a numbered text list.
 - If one active project is returned, use it by default unless the user explicitly asked to choose or the context conflicts, then open its `selectedProjectUrl` or choice `projectUrl` directly.
 - If multiple active projects are returned, wait for the user to pick by number, name, or project id. Do not choose the first project automatically. After selection, open that choice's `projectUrl` directly.

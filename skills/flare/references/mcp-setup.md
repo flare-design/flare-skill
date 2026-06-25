@@ -45,7 +45,7 @@ When `check_client_setup` is exposed, call it once before the first visible canv
 {
   "client": "codex",
   "skillName": "flare",
-  "installedSkillVersion": "0.1.19"
+  "installedSkillVersion": "0.1.20"
 }
 ```
 
