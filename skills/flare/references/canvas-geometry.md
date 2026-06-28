@@ -47,12 +47,16 @@ When exact user coordinates are not required, keep inserted media inside the cur
 
 Before writing to a live project:
 
-1. Read `get_live_canvas_context` to understand active selection, viewport, and text editing state.
-2. Read `get_canvas_snapshot` or `export_project_snapshot` when node ids or hierarchy matter.
-3. Write through MCP so the collab room syncs to active clients.
-4. Verify the created or updated node ids.
+1. Open the MCP-returned `projectUrl` exactly as returned. It may include `?agentSession=...`; this binds the browser tab's live selection and viewport to the current agent operation.
+2. Preserve the returned `agentSessionId` and pass it to `get_live_canvas_context`, annotation context tools, placement tools, and `create_image_upload_session.autoInsert` when available.
+3. Read `get_live_canvas_context` to understand active selection, viewport, and text editing state. With `agentSessionId`, this should resolve the bound browser tab instead of another collaborator's tab.
+4. Read `get_canvas_snapshot` or `export_project_snapshot` when node ids or hierarchy matter.
+5. Write through MCP so the collab room syncs to active clients.
+6. Verify the created or updated node ids unless the workflow explicitly says to stop after upload auto-insert.
 
 Avoid editing stale snapshots directly. If the browser shows different content from the snapshot, reload state before retrying.
+
+Do not infer live selection from another collaborator just because they share the same account or project. Use `agentSessionId` first, explicit `clientId` second, and only fall back to generic active presence when no bound browser context exists.
 
 ## Sizing Defaults
 
